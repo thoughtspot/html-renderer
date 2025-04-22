@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test HTML Page</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            padding: 30px;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #0056b3;
+        }
+        code {
+            background-color: #eef;
+            padding: 2px 5px;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>HTML File Served by Python!</h1>
+        <p>This page (<code>example.html</code>) is being rendered in your browser after being served by the <code>render_html.py</code> script.</p>
+        <p>The Python script uses the built-in <code>http.server</code> module.</p>
+        <p>Any relative links to assets (like CSS, JS, or images) located in the <em>same directory</em> as this file should work correctly.</p>
+        <hr>
+        <p><em>Served on: <script>document.write(new Date().toLocaleString());</script></em></p>
+    </div>
+</body>
+</html>
