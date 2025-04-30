@@ -19,32 +19,15 @@ on:
         type: string
 
 jobs:
-  sync-to-public:
-    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true) || github.event_name == 'workflow_dispatch'
+  check-private-repo:
     runs-on: ubuntu-latest
+    outputs:
+      is_private: ${{ steps.check-repo.outputs.is_private }}
+      private_repo: ${{ steps.repo-names.outputs.private_repo }}
+      public_repo: ${{ steps.repo-names.outputs.public_repo }}
+      org: ${{ steps.repo-names.outputs.org }}
     
     steps:
-      - name: Check out private repository
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0  # We need all branches
-          token: ${{ secrets.GITHUB_TOKEN }}
-          
-      - name: Set up SSH
-        uses: webfactory/ssh-agent@v0.7.0
-        with:
-          ssh-private-key: ${{ secrets.SSH_DEPLOY_KEY }}
-          
-      - name: Configure SSH known hosts
-        run: |
-          mkdir -p ~/.ssh
-          ssh-keyscan github.com >> ~/.ssh/known_hosts
-          
-      - name: Set Git identity
-        run: |
-          git config --global user.name "GitHub Action"
-          git config --global user.email "action@github.com"
-          
       - name: Determine repository names
         id: repo-names
         run: |
@@ -70,6 +53,45 @@ jobs:
           echo "Public repository: $PUBLIC_REPO"
           echo "Organization: $ORG"
 
+      - name: Check if repository is private
+        id: check-repo
+        run: |
+          # Check if this is a private repository (name contains "-private")
+          if [[ "${{ steps.repo-names.outputs.private_repo }}" == *"-private"* ]]; then
+            echo "is_private=true" >> $GITHUB_OUTPUT
+            echo "This is a private repository, sync will proceed."
+          else
+            echo "is_private=false" >> $GITHUB_OUTPUT
+            echo "This is not a private repository, sync will be skipped."
+          fi
+
+  sync-to-public:
+    needs: check-private-repo
+    if: (github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true) || github.event_name == 'workflow_dispatch') && needs.check-private-repo.outputs.is_private == 'true'
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Check out private repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # We need all branches
+          token: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Set up SSH
+        uses: webfactory/ssh-agent@v0.7.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_DEPLOY_KEY }}
+          
+      - name: Configure SSH known hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan github.com >> ~/.ssh/known_hosts
+          
+      - name: Set Git identity
+        run: |
+          git config --global user.name "GitHub Action"
+          git config --global user.email "action@github.com"
+          
       - name: Get all branch names
         id: get-branches
         run: |
@@ -90,11 +112,11 @@ jobs:
           git config user.email "action@github.com"
           
           # Set up remote for the public mirror using SSH
-          git remote add public git@github.com:${{ steps.repo-names.outputs.org }}/${{ steps.repo-names.outputs.public_repo }}.git
+          git remote add public git@github.com:${{ needs.check-private-repo.outputs.org }}/${{ needs.check-private-repo.outputs.public_repo }}.git
           
           # Check if public repo exists by attempting to connect to it
           if ! git ls-remote public HEAD &>/dev/null; then
-            echo "Public repository doesn't exist or can't be accessed: ${{ steps.repo-names.outputs.org }}/${{ steps.repo-names.outputs.public_repo }}"
+            echo "Public repository doesn't exist or can't be accessed: ${{ needs.check-private-repo.outputs.org }}/${{ needs.check-private-repo.outputs.public_repo }}"
             echo "Ensure the repository exists and the SSH key has appropriate access."
             exit 1
           fi
