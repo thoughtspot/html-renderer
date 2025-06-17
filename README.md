@@ -14,3 +14,5 @@ This project provides a command-line Python script (`render_html.py`) that takes
 ## Requirements
 
 * Python 3.7+ (due to usage of `functools.partial` with `http.server.SimpleHTTPRequestHandler`)
+
+TEST BRANCH SPECIFIC SYNC
