@@ -1,0 +1,10 @@
+# requirements.txt
+
+# This project primarily uses the Python standard library.
+# The following package is optional but *required* for the 'tiktoken' mode,
+# which provides accurate tokenization for OpenAI LLMs (like GPT-4).
+# If you only need basic regex-based splitting, you don't need to install this.
+
+# To install: pip install tiktoken
+# tiktoken>=0.4.0
+
