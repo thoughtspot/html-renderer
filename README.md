@@ -17,4 +17,4 @@ This project provides a command-line Python script (`render_html.py`) that takes
 
 ## Project Structure
 
-test Branch-wise sync -- js
+asdfghjkl
